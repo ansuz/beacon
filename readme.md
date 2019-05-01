@@ -22,3 +22,15 @@ Sorry.
 If you manage to get it to build, then you need to serve it. Go hack the `config.js` in _gestalt_ to serve the `./www/` directory in this repo.
 
 GOOD LUCK.
+
+## Contributing
+
+I don't really have a clear idea what I want to do with this project except that I'll probably use it as a platform for implementing more secure protocols.
+
+The UI/UX is pretty terrible, but there are some APIs that can probably be useful for actual games. I'm hesitant to try to generalize the code I have without a clear idea of how people would like to use it. If you have a use case, I'd like to hear it.
+
+
+
+
+
+

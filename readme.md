@@ -29,8 +29,9 @@ I don't really have a clear idea what I want to do with this project except that
 
 The UI/UX is pretty terrible, but there are some APIs that can probably be useful for actual games. I'm hesitant to try to generalize the code I have without a clear idea of how people would like to use it. If you have a use case, I'd like to hear it.
 
+## Code of Conduct
 
+This project has a code of conduct.
 
-
-
+If you're the type of person who avoids projects which have a code of conduct and its presence has prevented you from getting involved, that's wonderful! I don't want to deal with you.
 

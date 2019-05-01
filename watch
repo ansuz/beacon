@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# make sure www exists
+mkdir -p www;
+
 lintLess () {
     ./node_modules/lesshint/bin/lesshint -c ./.lesshintrc ./src/styles/
 }

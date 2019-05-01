@@ -1,0 +1,59 @@
+.box (@n: 0.3) {
+    background-color: rgba(0, 0, 0, @n);
+}
+
+div.messaging {
+    //margin: 15px;
+    max-width: 100%;
+    div.message-container {
+        height: 60vh;
+        //padding: 15px;
+        div.messages {
+            overflow-y: auto; //scroll;
+            overflow-x: hidden;
+
+            width: auto;
+            height: 100%;
+            div.message {
+                padding: 5px;
+                span.author,
+                span.text,
+                span.md {
+                    padding: 15px;
+                }
+                span.author {
+                    display: block;
+                    width: 100%;
+                    padding: 15px;
+                    .box;
+                }
+                span.md {
+                    display: block;
+                }
+                &.action {
+                    font-weight: bold;
+                }
+            }
+        }
+    }
+
+    div.input-container {
+        display: flex;
+        border: 1px solid @base;
+        max-width: 100%;
+        input[type="text"] {
+            flex: 1;
+            color: black;
+            padding: 15px;
+            border-radius: 0px;
+            border: 1px solid @pink;
+        }
+        button {
+            box-sizing: border-box;
+            border-radius: 0px;
+            border: 1px solid @pink;
+            background-color: transparent;
+            padding: 14px;
+        }
+    }
+}

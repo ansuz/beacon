@@ -1,0 +1,76 @@
+@import (once) "./fonts.less";
+
+
+
+// TODO use safer font format than OTF
+// TODO move to fonts.less
+@font-face {
+    font-family: Poly;
+    src: url("/fonts/poly/Poly-Regular.otf") format("opentype");
+}
+@font-face {
+    font-family: Poly;
+    font-weight: normal;
+    font-style: italic;
+    src: url("/fonts/poly/Poly-Italic.otf") format("opentype");
+}
+
+@font-face {
+    font-family: 'Freight-Sans';
+    font-weight: normal;
+    font-style: sans-serif;
+    src: url("/fonts/Freight Sans Medium/Freight Sans Medium.otf") format("opentype");
+}
+
+@font-face {
+    font-family: 'Anonymous-Pro';
+    font-weight: normal;
+    font-style: monospace;
+    src: url("/fonts/AnonymousPro-1.002/Anonymous Pro.ttf") format('truetype');
+}
+
+// TODO improve font stack with fallbacks
+.mono () {
+    font-family: 'Anonymous-Pro';
+}
+
+// TODO improve font stack with fallbacks
+.copy () {
+    font-family: 'Freight-Sans';
+
+    //font-family: Poly, "Palatino Linotype", Palatino, Palladio, "URW Palladio L", "Book Antiqua", Baskerville, "Bookman Old Style", "Bitstream Charter", "Nimbus Roman No9 L", Garamond, "Apple Garamond", "ITC Garamond Narrow", "New Century Schoolbook", "Century Schoolbook", "Century Schoolbook L", Georgia, serif;
+}
+
+// space mono is cool
+@font-face {
+  font-family: 'Space Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Space Mono Italic'), local('SpaceMono-Italic'), url(/fonts/space-mono/space-mono-italic.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Space Mono Bold Italic'), local('SpaceMono-BoldItalic'), url(/fonts/space-mono/space-mono-bold-italic.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Space Mono'), local('SpaceMono-Regular'), url(/fonts/space-mono/space-mono-regular.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Space Mono Bold'), local('SpaceMono-Bold'), url(/fonts/space-mono/space-mono-bold.ttf) format('truetype');
+}
+
+.space () {
+    font-family: 'Space Mono';
+}
+
+///////////////////////////
+
+

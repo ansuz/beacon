@@ -1,0 +1,79 @@
+#!/bin/bash
+
+lintLess () {
+    ./node_modules/lesshint/bin/lesshint -c ./.lesshintrc ./src/styles/
+}
+
+
+buildLess () {
+    echo "compiling less";
+# compile less into css
+    lessc ./src/styles/main.less > ./www/stylesheet.css
+    #--clean-css="--s1 --advanced --compatibility=ie8"
+}
+
+lintJs () {
+    jshint --config .jshintrc --exclude-path .jshintignore .
+}
+
+DEBUG_MODE="0";
+
+if [[ "$1" == "debug" ]]
+    then {
+        echo "compiling with a source map";
+        let 'DEBUG_MODE = 1';
+    }
+    else echo "compiling with no source map";
+fi
+
+
+buildJs() {
+
+# compile all your js
+if [[ $DEBUG_MODE ]]
+    then {
+        time browserify ./src/js/main.js -d -p [minifyify --map /bundle.js.map --output ./www/bundle.js.map] > ./www/bundle.js;
+    }
+    else time browserify ./src/js/main.js > ./www/bundle.js;
+fi
+
+# copy favicon to www
+    cp ./src/favicon.png ./www/favicon.png
+
+# take a hash of that file
+    hash="sha384-$(cat ./www/bundle.js | openssl dgst -sha384 -binary | openssl enc -base64 -A)";
+
+# sed your script resource integrity into a page
+    content="$(sed -e "s|{SRI}|$hash|g" ./src/template.html)";
+
+# overwrite your existing content
+    echo $content > ./www/index.html
+}
+
+daemon() {
+    chsum1=""
+    lesssum1=""
+    i=0
+
+    while [[ true ]]
+    do
+        chsum2=`find src/js/ -name "*.js" -type f -exec md5sum {} \;`
+        if [[ $chsum1 != $chsum2 ]] ; then
+            let "i += 1"
+            #echo $i
+            lintJs && buildJs && echo "build #$i successful"
+            chsum1=$chsum2
+        fi
+        lesssum2=`find src/styles/ -name "*.less" -type f -exec md5sum {} \;`
+        if [[ $lesssum1 != $lesssum2 ]] ; then
+            let "i += 1"
+            #echo $i
+            time lintLess && buildLess && echo "build #$i successful"
+            lesssum1=$lesssum2
+        fi
+
+        sleep 1
+    done
+}
+
+daemon

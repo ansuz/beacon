@@ -1,0 +1,39 @@
+{
+  "name": "platform",
+  "version": "1.0.0",
+  "description": "an encrypted platform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "jshint --config .jshintrc --exclude-path .jshintignore .",
+    "build:js": "browserify -t strictify ./src/js/main.js > ./www/bundle.js",
+    "build:less": "lessc ./src/styles/main.less > ./www/stylesheet.css",
+    "build": "sh build.sh",
+    "start": "node server.js",
+    "watch": "./watch",
+    "lint:less": "./node_modules/lesshint/bin/lesshint -c ./.lesshintrc ./src/styles/",
+    "debug": "./watch debug"
+  },
+  "author": "ansuz",
+  "license": "ISC",
+  "dependencies": {
+    "ansuz": "0.0.18",
+    "clean-css": "^4.1.7",
+    "cryptomancy": "^1.0.4",
+    "cryptomancy-format": "^1.0.2",
+    "cryptomancy-methods": "^1.0.3",
+    "cryptomancy-source": "^1.0.3",
+    "cryptomancy-util": "^1.0.3",
+    "hyperscript": "^2.0.2",
+    "lesshint": "^4.6.5",
+    "marked": "^0.6.2",
+    "minifyify": "^7.3.5",
+    "mkdirp": "^0.5.1",
+    "netflux-websocket": "^0.1.18",
+    "nthen": "^0.1.8",
+    "strictify": "^0.2.0",
+    "tweetnacl": "^1.0.1",
+    "unmon-router": "^1.0.0",
+    "ws": "^3.1.0"
+  }
+}

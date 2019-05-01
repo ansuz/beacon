@@ -1,0 +1,92 @@
+@import (less) "./normalize.css";
+@import (less) "./reset.css";
+
+@import (once) "./variables.less";
+@import (once) "./messaging.less";
+@import (once) "./ui.less";
+@import (once) "./media.less";
+@import (once) "./fonts.less";
+
+.copy {
+    .copy;
+    a,
+    p {
+        font-size: 1.5em;
+        padding-bottom: 1em;
+    }
+}
+
+html,
+body {
+    height: 100;
+    width: 100;
+    font-size: 18px;
+    //font-family: Poly;
+    //font-family: monospace;
+    // .mono;
+    .space();
+    box-sizing: border-box;
+}
+
+body {
+    background-color: @base;
+    color: @fore;
+}
+
+.centered {
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 70vw;
+    transform: translate(-50%, -50%);
+}
+
+.spa-all {
+    max-width: 80vw;
+    margin: auto;
+
+    //border-box: box;
+    box-sizing: border-box;
+
+    .spa-bar {
+        width: 100%;
+        h1.title {
+            font-size: 1.5em;
+            border-bottom: 0.2em solid @fore;
+            padding-left: 0.5em;
+            padding-top: 1em;
+            padding-bottom: 1em;
+        }
+    }
+    .spa-contain {
+        display: flex;
+
+        width: 100%;
+        margin: 0;
+        padding: 1em;
+
+        .spa-main {
+            max-width: 50%;
+            //margin: auto;
+            padding: auto;
+            flex: 1;
+
+            .version {
+                font-family: monospace;
+                background-color: rgba(0, 0, 0, 0.3);
+                display: block;
+            }
+        }
+        .spa-log {
+            flex: 1;
+            max-width: 50%;
+            border: 1px solid @pink;
+        }
+    }
+}
+
+p {
+    font-size: 1.5em;
+}
+

@@ -21,6 +21,7 @@ console.log(websocket_url);
 
 Network.connect = function (cb) {
     var List = {};
+    var myID;
     var network;
     var listMembers = function () {
         console.log('Users: [%s]', Object.keys(List).join(', '));
@@ -53,6 +54,8 @@ Network.connect = function (cb) {
 
     var onReconnect;
     var onDisconnect = function (reason) {
+        // remove everyone from the userlist
+        List = {};
         State.events['net/disconnect'].invoke({
             reason: reason,
         });
@@ -89,6 +92,8 @@ Network.connect = function (cb) {
         chan.on("message", handle);
 
         console.log("history keeper has id [%s]", network.historyKeeper);
+
+        myID = chan.myID;
 
         var api = {
             receive: function (handler) {

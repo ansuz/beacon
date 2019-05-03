@@ -30,18 +30,52 @@ Game.parse = function (expr) {
     .map(function (s) { return s.trim(); })
     .map(function (s) {
         var o;
-        s.replace(/(\d+)d(\d+)/, function (all, n, r) {
+        s.replace(/^(\d+)d(\d+)$/, function (all, n, r) {
             if (isNaN(n) || isNaN(r)) { return; }
 
             o = {};
+            o.t = 'd'; // it's a die
             o.n = n;
             o.r = r;
             o.src = all;
+            return '';
+        })
+        .replace(/^(\d+)c$/, function (all, n) {
+            o = {};
+            o.n = n;
+            o.t = 'c'; // it's a coin
+            o.r = 2; // it has two sides..
+            o.src = all;
+            return '';
         });
 
         return o;
     }).filter(Boolean);
     return parsed;
+};
+
+
+var formatted_die_roll = function (die, parsed) {
+    var n = parsed.n;
+    var total = 0;
+    var r = parsed.r;
+    var src = parsed.src;
+    while (n--) {
+        total += (die(r) + 1);
+    }
+    return src + " => " + total;
+};
+
+var formatted_coin_toss = function (die, parsed) {
+    var n = parsed.n;
+    var total = '';
+    //var r = parsed.r;
+    var src = parsed.src;
+
+    while (n--) {
+        total += die(2) === 0? 'T': 'H';
+    }
+    return src + ' => ' + total;
 };
 
 Game.run_parsed = function (bytes, parsed) {
@@ -51,13 +85,10 @@ Game.run_parsed = function (bytes, parsed) {
     console.log(parsed);
 
     var res = parsed.map(function (o) {
-        var n = o.n;
-        var total = 0;
-
-        while (n--) {
-            total += (die(o.r) + 1);
-        }
-        return o.src + " => " + total;
+        if (o.t === 'c') { return formatted_coin_toss(die, o); }
+        if (o.t === 'd') { return formatted_die_roll(die, o); }
+        // throw error? should never get here
+        return '';
     }).join(', ');
     return res;
 };

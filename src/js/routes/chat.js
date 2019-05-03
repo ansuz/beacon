@@ -1,6 +1,5 @@
 //var ui = require("../ui");
 var State = require("../state");
-var global = State.global;
 var h = require("hyperscript");
 var ui = require("../ui");
 var Util = require("../util");
@@ -110,8 +109,13 @@ module.exports = function (req, res, next) {
         disconnectAlert = ui.alert("Disconnected!", function () {});
         setEditable(false);
     })
-    .on('net/connect', function () {
-
+    .on('net/connect', function (info) {
+        try {
+            console.log('connected to %s', info.channel);
+        } catch (e) {
+            console.error(e);
+            console.error(info);
+        }
     })
     .on('mpc/ready', function () {
         if (disconnectAlert) { disconnectAlert.click(); }
@@ -149,7 +153,7 @@ module.exports = function (req, res, next) {
     });
 
     var myName = function () {
-        return global.commands.name();
+        return State.commands.name();
     };
 
 /*
@@ -174,7 +178,7 @@ module.exports = function (req, res, next) {
         }
 
         var me = myName();
-        global.commands.bytes(32, val, function (err /*, res */) {
+        State.commands.bytes(32, val, function (err /*, res */) {
             if (err) {
                 append('' + err, new Date(), me);
                 return;
@@ -193,7 +197,7 @@ module.exports = function (req, res, next) {
         var nick = val.replace(/^\/nick/, '').trim();
         if (!nick) { return; }
 
-        global.commands.nick(nick, function (err) {
+        State.commands.nick(nick, function (err) {
             if (err) { return void console.error(err); }
             display_nick('You are now known as ' + nick, new Date(), myName());
         });
@@ -215,7 +219,7 @@ module.exports = function (req, res, next) {
         // TODO add it to the interface but don't mark it as received
 
         // TODO support sending messages to other channels
-        global.commands.message(val, function (err) {
+        State.commands.message(val, function (err) {
             if (err) {
                 return void console.error(err);
             }

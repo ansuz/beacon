@@ -5,9 +5,9 @@ module.exports.route = function (req, res) {
     res.setTitle("Dicebag");
 
     var Expr = {
-        "coin": "1d2",
-        "two coins": "1d2, 1d2",
-        "three coins": "1d2, 1d2, 1d2",
+        "coin": "1c",
+        "two coins": "2c",
+        "three coins": "3c",
         "_1": "",
         "_2": "",
         d4: "1d4",
@@ -26,10 +26,9 @@ module.exports.route = function (req, res) {
 
         var b = h('button', k);
         b.onclick = function () {
-            State.global.commands.bytes(32, Expr[k], function (err, result) {
+            State.commands.bytes(32, Expr[k], function (err, result) {
                 if (err) { return console.error(err); }
                 console.log(result);
-
             });
         };
 

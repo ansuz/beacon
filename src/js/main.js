@@ -10,6 +10,8 @@ var netEvents = util.events([
 
     'net/connect',
     'net/reconnect',
+    'net/disconnect',
+    // TODO differentiate between net and chan
     'net/join',
     'net/part',
 ]);
@@ -55,13 +57,13 @@ var Multi = require("./mpc");
 
 Network.connect(function (err, api) {
     if (err) { return void console.error(err); }
-    State.events['net/connect'].invoke();
+    //State.events['net/connect'].invoke();
 
     Multi.prepare(api, function (err, commands) {
         if (err) {
             return console.error(err);
         }
-        global.commands = commands;
+        State.commands = commands;
         State.messaging.ready = true;
         State.events['mpc/ready'].invoke();
     });

@@ -23,11 +23,14 @@ Network.connect = function (cb) {
     var List = {};
     var network;
     var listMembers = function () {
-        console.log(Object.keys(List).join('\n'));
+        console.log('Users: [%s]', Object.keys(List).join(', '));
     };
 
     var onJoin = function (peer) {
-        // TODO emit net/join event
+        State.events['net/join'].invoke({
+            id: peer,
+        });
+
         if (peer.length === 16 && !network.historyKeeper) {
             network.historyKeeper = peer;
         }
@@ -40,16 +43,34 @@ Network.connect = function (cb) {
     };
 
     var onLeave = function (peer) {
-        // TODO emit net/part
+        State.events['net/part'].invoke({
+            id: peer,
+        });
         delete List[peer];
         console.log("%s left the channel", peer);
         listMembers();
     };
 
     var onReconnect;
+    var onDisconnect = function (reason) {
+        State.events['net/disconnect'].invoke({
+            reason: reason,
+        });
+    };
+
+    var setup = Util.once(function (network) {
+        // add reconnect handlers
+        network.on('reconnect', onReconnect);
+
+        // add disconnect handlers
+        network.on('disconnect', onDisconnect);
+    });
 
     var onOpen = function (chan) {
         console.log("connected to [%s]", Network.default_channel);
+
+        // add one-time handlers
+        setup(network);
 
         var handlers = [];
         var handle = function (msg, sender) {
@@ -67,7 +88,6 @@ Network.connect = function (cb) {
         chan.on('leave', onLeave);
         chan.on("message", handle);
 
-        network.on('reconnect', onReconnect);
         console.log("history keeper has id [%s]", network.historyKeeper);
 
         var api = {
@@ -90,13 +110,20 @@ Network.connect = function (cb) {
             },
         };
 
+        State.events['net/connect'].invoke({
+            channel: chan.id,
+        });
+
         cb(void 0, api);
     };
 
     onReconnect = function () {
-        // TODO emit net/reconnect
         network.join(Network.default_channel).then(onOpen, function (err) {
-            console.error(err);
+            if (err) { console.error(err); }
+            State.events['net/reconnect'].invoke({
+                channel: Network.default_channel,
+            });
+            console.log("reconnected");
         });
     };
 
@@ -105,17 +132,15 @@ Network.connect = function (cb) {
             return new global.WebSocket(url);
         })
         .then(w(function (_network) {
-            network = global.network = _network;
+            network = State.network = _network;
         }), function (err) {
             w.abort();
-            console.error(err);
+            cb(err);
         });
     }).nThen(function (w) {
         network.join(Network.default_channel)
         .then(onOpen, function (err) {
-            // TODO emit net/connect
             w.abort();
-            console.error(err);
             cb(err);
         });
     });

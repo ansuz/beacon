@@ -7,10 +7,13 @@ module.exports.route = function (req, res) {
     res.setTitle('About');
 
     var box = h('div.copy');
-    box.innerHTML = Marked("Cryptomancy is inspired by [Cryptomancer](http://cryptorpg.com), a tabletop role-playing game made for hackers, by hackers.\n\n"
-    + "It provides tools for playing tabletop roleplaying games over the internet without relying on a trusted third party to prevent players from cheating on their random dice rolls.\n\n"
-    + "It accomplishes this by using a cryptographic technique known as a [secure coin flip](https://en.wikipedia.org/wiki/Commitment_scheme#Coin_flipping).\n\n"
-    + "Cryptomancy communicates using a [CryptPad](https://cryptpad.fr) server. Its cryptographic components come from [TweetNaCl-js](https://github.com/dchest/tweetnacl-js).\n\n");
+    box.innerHTML = Marked("This tool provides [provably fair](https://en.wikipedia.org/wiki/Provably_fair) random functions using cryptography in your browser.\n\n"
+    + "You can use it to play games with friends.\n\n"
+    + "Set your name in the 'whoami' tab, then use the 'dicebag' to roll flip coins or roll dice.\n\n"
+    + "It only uses a simple server to relay messages, but everything else is peer-to-peer"
+    + "This project was inspired by [Cryptomancer](http://cryptorpg.com), _a tabletop role-playing game made for hackers, by hackers_.\n\n"
+    + "Its source code is available [on GitHub](https://github.com/ansuz/beacon).\n\n"
+    );
 
     res.main.appendChild(box);
 };

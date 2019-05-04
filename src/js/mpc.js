@@ -512,10 +512,10 @@ var NICK = function (env) {
 
     env.calls.NICK = function (msg, sender) {
         // This means someone else changed their nick
-
         var prev = env.nicks[sender] || sender;
-
         var nick = env.nicks[sender] = msg.body.nick;
+        if (prev === nick) { return; }
+
         State.events['mpc/nick'].invoke({
             nick: nick,
             author: sender,

@@ -4,6 +4,7 @@ var h = require("hyperscript");
 var ui = require("../ui");
 var Util = require("../util");
 var Game = require("../game");
+var Storage = require("../storage");
 
 var data = function (e, k, v) {
     if (!e || typeof(e.getAttribute) !== 'function') { return; }
@@ -156,21 +157,6 @@ module.exports = function (req, res, next) {
         return State.commands.name();
     };
 
-/*
-    State.Page
-    //.on('rpc/reconnect', function () { console.log("RECONNECTED!"); })
-    .on('rpc/disconnect', function () { })
-    .on('rpc/message', function (msg) {
-        console.log('received a user message:', msg);
-        append(msg.payload[1], msg.time, msg.id);
-    }).on('rpc/part', function (msg) {
-        console.log('received a part message:', msg);
-        append('User ' + msg.id + ' left', +new Date(), msg.id);
-    }).on('rpc/join', function (msg) {
-        console.log('received a join message:', msg);
-        append('User ' + msg.id + ' joined', +new Date(), msg.id);
-    });*/
-
     var roll_die = function (val) {
         var parsed = Game.parse(val);
         if (!parsed.length) {
@@ -199,9 +185,39 @@ module.exports = function (req, res, next) {
 
         State.commands.nick(nick, function (err) {
             if (err) { return void console.error(err); }
+            if (myName() === val) { return; }
             display_nick('You are now known as ' + nick, new Date(), myName());
         });
     };
+
+    State
+    .on('name/self', function (result) {
+        // you changed your name... let the world know about it
+        setNick(result.new);
+    })
+    /*
+    .on('name/other', function () {
+        // FIXME why does this work?
+        // mpc/nick
+    })*/
+    .on('net/join', function (/* data */) {
+        // broadcast your name when someone else connects
+        Storage.get('name', function (err, name) {
+            setNick(name);
+        });
+        // TODO also display their name?
+    })
+    .on('net/part', function (data) {
+        console.log(data);
+        // get their nick and say that they have left
+    })
+    .on('net/connect', function (data) {
+        console.log(data);
+        // broadcast your name when you connect
+        Storage.get('name', function (err, name) {
+            setNick(name);
+        });
+    });
 
     var handleInput = function (val) {
         if (/^\/roll/.test(val)) {

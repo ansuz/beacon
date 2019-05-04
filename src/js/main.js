@@ -14,6 +14,10 @@ var netEvents = util.events([
     // TODO differentiate between net and chan
     'net/join',
     'net/part',
+
+    // naming things
+    'name/self',
+    //'name/other',
 ]);
 
 State.events = netEvents.events;

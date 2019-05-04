@@ -3,6 +3,7 @@ var h = require("hyperscript");
 
 var listed_pages = [
     'about',
+    'whoami',
      'dicebag',
 ];
 

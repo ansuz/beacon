@@ -2,6 +2,10 @@
 
 This is a **work in progress**, implementing client-side code which is intended to be used in conjunction with [Gestalt](https://github.com/ansuz/gestalt) as the server.
 
+## General info
+
+See [the wiki](https://github.com/ansuz/beacon.wiki).
+
 ## Features
 
 * [x] a wacky home-cooked framework for a single page app

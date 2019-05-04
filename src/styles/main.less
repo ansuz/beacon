@@ -9,9 +9,14 @@
 
 .copy {
     .copy;
+
+    padding: 5px;
+    max-height: 80vh;
+    overflow-y: auto;
+
     a,
     p {
-        font-size: 1.5em;
+        font-size: 1.2em;
         padding-bottom: 1em;
     }
 }
@@ -52,21 +57,26 @@ body {
     .spa-bar {
         width: 100%;
         h1.title {
-            font-size: 1.5em;
+            display: none;
+            font-size: 1.4em;
             border-bottom: 0.2em solid @fore;
             padding-left: 0.5em;
-            padding-top: 1em;
-            padding-bottom: 1em;
+            padding-top: 0.5em;
+            padding-bottom: 0.5em;
         }
     }
     .spa-contain {
         display: flex;
+        flex-flow: row;
+
 
         width: 100%;
         margin: 0;
         padding: 1em;
+        height: 100%;
 
         .spa-main {
+            height: 100%;
             max-width: 50%;
             //margin: auto;
             padding: auto;
@@ -79,6 +89,7 @@ body {
             }
         }
         .spa-log {
+            height: 100%;
             flex: 1;
             max-width: 50%;
             border: 1px solid @pink;
@@ -87,6 +98,6 @@ body {
 }
 
 p {
-    font-size: 1.5em;
+    font-size: 1.1em;
 }
 

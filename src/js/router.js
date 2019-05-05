@@ -9,13 +9,14 @@ var nav = require("./nav");
 
 var routes = router.routes = require("./views/index");
 var State = require("./state");
+var Hash = require("./hash");
 var document = State.global.document;
 
 var request = function (hash) {
     if (!hash) { return { url: '/' }; }
     return {
-        url: hash.slice(1),
-        parts: hash.slice(1).split('/').filter(Boolean),
+        url: Hash.prepare(hash),
+        parts: Hash.parse(hash),
     };
 };
 

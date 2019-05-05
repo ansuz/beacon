@@ -58,8 +58,11 @@ global.onhashchange = function () {
 
 var Network = require("./network");
 var Multi = require("./mpc");
+var Hash = require("./hash");
 
-Network.connect(function (err, api) {
+var seed = Hash.parse(Hash.get())[1] || '';
+
+Network.connect(seed, function (err, api) {
     if (err) { return void console.error(err); }
     //State.events['net/connect'].invoke();
 

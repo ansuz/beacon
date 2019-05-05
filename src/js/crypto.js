@@ -87,6 +87,20 @@ Keys.clone = function (keys) {
     };
 };
 
+Keys.group.fromSource = function (source) {
+    return {
+        group_asymmetric: nacl.box.keyPair.fromSecretKey(
+            source(nacl.box.secretKeyLength)
+        ),
+        group_symmetric: source(nacl.secretbox.keyLength),
+    };
+};
+
+Keys.group.addPersonal = function (keys, personal) {
+    keys.my_asymmetric = personal;
+    return Keys.clone(keys);
+};
+
 var Group = Crypto.group = {};
 
 Group.encrypt = function (plain, keys) {

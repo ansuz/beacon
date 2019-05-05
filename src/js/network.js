@@ -8,8 +8,6 @@ var Network = module.exports;
 var nThen = require("nthen");
 var netflux_websocket = require("netflux-websocket");
 
-// an ephemeral channel id
-Network.default_channel = '004718d53646c30b58ac57d659d712a902';
 var websocket_url;
 try {
     websocket_url = global.location.origin.replace(/http/, 'ws') + '/cryptpad_websocket';
@@ -19,7 +17,23 @@ try {
 
 console.log(websocket_url);
 
-Network.connect = function (cb) {
+var Format = require("cryptomancy-format");
+var Source = require("cryptomancy-source");
+var Crypto = require("./crypto");
+
+Network.connect = function (seed, cb) {
+    var src = Source.bytes.deterministic(Format.decodeUTF8(seed));
+    var channel_id = Format.encodeHex(src(17)); // take 17 uint8s for an ephemeral channel id
+
+    // derive a temporary public keypair for yourself
+    // TODO store a key somewhere so you can have a persistent identity
+    var personal_keys = Crypto.keys.personal();
+
+    // derive group keys from the PRNG
+    var group_keys = Crypto.keys.group.fromSource(src);
+    // add your personal keys to the group keys so you can pass around one set
+    var all_keys = Crypto.keys.group.addPersonal(group_keys, personal_keys);
+
     var List = {};
     var myID;
     var network;
@@ -70,13 +84,20 @@ Network.connect = function (cb) {
     });
 
     var onOpen = function (chan) {
-        console.log("connected to [%s]", Network.default_channel);
+        console.log("connected to [%s]", chan.id);
 
         // add one-time handlers
         setup(network);
 
         var handlers = [];
-        var handle = function (msg, sender) {
+        var handle = function (ciphertext, sender) {
+            var msg;
+            try {
+                msg = Crypto.group.decrypt(ciphertext, all_keys);
+            } catch (e) {
+                console.error(e);
+                return;
+            }
             var parsed = Util.tryParse(msg);
             if (parsed === null) { return; }
             handlers.some(function (handler) {
@@ -95,12 +116,28 @@ Network.connect = function (cb) {
 
         myID = chan.myID;
 
+        var migrate = function (seed, cb) {
+            // Assume that the seed has been set to the hash.
+            // this should get called by chat...
+            // don't touch the hash from here
+
+
+            // TODO disconnect from your current channel
+            // TODO connect to the new channel
+            // TODO call back when connected
+
+            cb('NOT_IMPLEMENTED');
+        };
+
         var api = {
             receive: function (handler) {
                 handlers.push(handler);
             },
             send: function (json, cb) {
-                chan.bcast(JSON.stringify(json))
+                var plaintext = JSON.stringify(json);
+                var ciphertext = Crypto.group.encrypt(plaintext, all_keys);
+
+                chan.bcast(ciphertext)
                 .then(function () {
                     cb();
                 }, function (err) {
@@ -113,6 +150,7 @@ Network.connect = function (cb) {
             whoami: function () {
                 return chan.myID;
             },
+            migrate: migrate,
         };
 
         State.events['net/connect'].invoke({
@@ -123,10 +161,11 @@ Network.connect = function (cb) {
     };
 
     onReconnect = function () {
-        network.join(Network.default_channel).then(onOpen, function (err) {
+        network.join(channel_id)
+        .then(onOpen, function (err) {
             if (err) { console.error(err); }
             State.events['net/reconnect'].invoke({
-                channel: Network.default_channel,
+                channel: channel_id
             });
             console.log("reconnected");
         });
@@ -143,7 +182,8 @@ Network.connect = function (cb) {
             cb(err);
         });
     }).nThen(function (w) {
-        network.join(Network.default_channel)
+        console.log(channel_id);
+        network.join(channel_id)
         .then(onOpen, function (err) {
             w.abort();
             cb(err);

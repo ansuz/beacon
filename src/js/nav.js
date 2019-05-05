@@ -1,5 +1,6 @@
 var ui = require("./ui");
 var h = require("hyperscript");
+var Hash = require("./hash");
 
 var listed_pages = [
     'about',
@@ -8,7 +9,9 @@ var listed_pages = [
 ];
 
 var navLink = function (p) {
-    return ui.link('#/' + p + '/', p, p);
+    var hash = Hash.parse(Hash.get());
+    var target = Hash.format(p, hash[1]);
+    return ui.link(target, p, p);
 };
 
 module.exports = function () {

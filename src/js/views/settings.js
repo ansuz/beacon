@@ -13,9 +13,13 @@ module.exports.route = function (req, res) {
     var draw = function () {
         res.main.innerHTML = '';
         var old = name;
-        var p1 = h('p', 'You are currently known as "' + name + '"');
 
-        var button = h("button", 'here');
+        var button = ui.button([
+            '"',
+            name,
+            '"',
+        ]);
+
         button.onclick = function () {
             nThen(function (w) {
                 ui.prompt("enter your new name", {}, w(function (err, val) {
@@ -30,7 +34,7 @@ module.exports.route = function (req, res) {
                         return void ui.alert("That name is not valid");
                     }
 
-                    name = val.slice(0, 14);
+                    name = val.slice(0, 20);
                 }));
             }).nThen(function (w) {
                 storage.set('name', name, w(function (/* err, v */) {
@@ -44,15 +48,26 @@ module.exports.route = function (req, res) {
             });
        };
 
-        var p2 = h('p', [
-            'click ',
+        var rename = h('p', [
+            'Your name: ',
             button,
-            ' to change your name',
         ]);
 
+        var channel_button = ui.button([
+            'TODO',
+
+        ]);
+
+        var channel = h('p', [
+            'Your current chat channel: ',
+            channel_button,
+        ]);
+        channel = channel;
+
         var box = h('div', [
-            p1,
-            p2
+            rename,
+            h('br'),
+            //channel,
         ]);
         res.main.appendChild(box);
     };

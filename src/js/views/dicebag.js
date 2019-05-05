@@ -1,5 +1,6 @@
 var State = require("../state");
 var h = require("hyperscript");
+var ui = require("../ui");
 
 module.exports.route = function (req, res) {
     res.setTitle("Dicebag");
@@ -24,7 +25,7 @@ module.exports.route = function (req, res) {
     var buttons = Object.keys(Expr).map(function (k) {
         if (!Expr[k]) { return h('br'); }
 
-        var b = h('button', k);
+        var b = ui.button(k);
         b.onclick = function () {
             State.commands.bytes(32, Expr[k], function (err, result) {
                 if (err) { return console.error(err); }

@@ -7,6 +7,16 @@
 @import (once) "./media.less";
 @import (once) "./fonts.less";
 
+* {
+    //box-sizing: border-box;
+    //border: 1px solid @fore !important;
+}
+
+body {
+    height: 100vh;
+    max-height: 100vh;
+}
+
 .copy {
     .copy;
 
@@ -50,6 +60,8 @@ body {
 .spa-all {
     max-width: 80vw;
     margin: auto;
+    height: 100%;
+    max-height: 90vh;
 
     //border-box: box;
     box-sizing: border-box;
@@ -68,12 +80,12 @@ body {
     .spa-contain {
         display: flex;
         flex-flow: row;
+        height: 100%;
 
 
         width: 100%;
         margin: 0;
         padding: 0.5em;
-        height: 100%;
 
         .spa-main {
             height: 100%;
@@ -93,7 +105,6 @@ body {
             flex: 1;
             max-width: 50%;
             padding: 0.5em;
-            //border: 1px solid @pink;
         }
     }
 }

@@ -1,3 +1,5 @@
+/* globals Uint8Array */
+
 var nacl = require("tweetnacl");
 var Util = require("cryptomancy-util");
 var Format = require("cryptomancy-format");
@@ -71,7 +73,23 @@ Keys.group = function () {
     };
 };
 
-Crypto.encrypt = function (plain, keys) {
+Keys.clone = function (keys) {
+    return {
+        my_asymmetric: {
+            publicKey: new Uint8Array(keys.my_asymmetric.publicKey),
+            secretKey: new Uint8Array(keys.my_asymmetric.secretKey),
+        },
+        group_asymmetric: {
+            publicKey: new Uint8Array(keys.group_asymmetric.publicKey),
+            secretKey: new Uint8Array(keys.group_asymmetric.secretKey),
+        },
+        group_symmetric: new Uint8Array(keys.group_symmetric),
+    };
+};
+
+var Group = Crypto.group = {};
+
+Group.encrypt = function (plain, keys) {
     // generate random nonces
     var u8_symmetric_nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
     var u8_asymmetric_nonce = nacl.randomBytes(nacl.box.nonceLength);
@@ -110,7 +128,7 @@ Crypto.encrypt = function (plain, keys) {
     return Format.encode64(u8_bundled_symmetric);
 };
 
-Crypto.decrypt = function (cipher, keys) {
+Group.decrypt = function (cipher, keys) {
     // convert the base64 ciphertext into a Uint8Array
     var u8_bundled_symmetric = Format.decode64(cipher);
 
@@ -158,10 +176,10 @@ Crypto.decrypt = function (cipher, keys) {
     var u8_plain = nacl.box.open(
         u8_asymmetric_cipher,
         u8_asymmetric_nonce,
-        keys.group_asymmetric.publicKey,
-        keys.my_asymmetric.secretKey
+        u8_senders_publicKey, // keys.group_asymmetric.publicKey,
+        keys.group_asymmetric.secretKey
     );
 
-    // return teh final ciphertext as UTF8
+    // return the final ciphertext as UTF8
     return Format.encodeUTF8(u8_plain);
 };

@@ -18,6 +18,8 @@ var netEvents = util.events([
     // naming things
     'name/self',
     //'name/other',
+
+    'tab/notify',
 ]);
 
 State.events = netEvents.events;
@@ -76,3 +78,20 @@ Network.connect(seed, function (err, api) {
     });
 });
 
+(function () {
+    var Visible = require("./browser/visible");
+    if (!Visible.isSupported()) { return; }
+
+    var Notify = require("./browser/notify");
+
+    Visible.onChange(function (visible) {
+        // unnotify if visible
+        if (visible) { return void Notify.cancel(); }
+    });
+
+    State.events['tab/notify'].on(function (reason) {
+        console.log("Notified because: ", reason);
+        if (Visible.currently()) { return; }
+        Notify.blink();
+    });
+}());

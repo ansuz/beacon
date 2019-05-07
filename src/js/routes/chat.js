@@ -28,6 +28,8 @@ var cleanAuthorship = function (main) {
 
 
 module.exports = function (req, res, next) {
+    // TODO, if the seed has changed, migrate to the new channel...
+
     if (State.chat_ready) { return void next(); }
     State.chat_ready = true;
 
@@ -53,6 +55,10 @@ module.exports = function (req, res, next) {
 
     var scrollDown = function () {
         messages.scrollTop = messages.scrollHeight;
+
+        // a bit hacky, but...
+        // let's put notifications here because it's called every time chat changes
+        State.events['tab/notify'].invoke("message");
     };
 
     // TODO implement action and meta messages

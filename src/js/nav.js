@@ -5,7 +5,8 @@ var Hash = require("./hash");
 var listed_pages = [
     'about',
     'settings',
-     'dicebag',
+    'dicebag',
+    'users',
 ];
 
 var navLink = function (p) {

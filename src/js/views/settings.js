@@ -8,7 +8,7 @@ var ui = require("../ui");
 var constants = require("../constants");
 
 module.exports.route = function (req, res) {
-    res.setTitle("Whoami");
+    res.setTitle("Settings");
     var name;
 
     var draw = function () {

@@ -19,20 +19,36 @@ console.log(websocket_url);
 
 var Format = require("cryptomancy-format");
 var Source = require("cryptomancy-source");
-var Crypto = require("./crypto");
+var Crypto = require("./lib/crypto");
 
-Network.connect = function (seed, cb) {
-    var src = Source.bytes.deterministic(Format.decodeUTF8(seed));
-    var channel_id = Format.encodeHex(src(17)); // take 17 uint8s for an ephemeral channel id
+Network.connect = function (seed, CB) {
+    // make sure the callback is not called more than once
+    var cb = Util.once(CB);
 
-    // derive a temporary public keypair for yourself
-    // TODO store a key somewhere so you can have a persistent identity
-    var personal_keys = Crypto.keys.personal();
+    var channel_id, all_keys;
 
-    // derive group keys from the PRNG
-    var group_keys = Crypto.keys.group.fromSource(src);
-    // add your personal keys to the group keys so you can pass around one set
-    var all_keys = Crypto.keys.group.addPersonal(group_keys, personal_keys);
+    var configureFromSeed = function (seed) {
+        if (typeof(seed) !== 'string') {
+            console.log("initializing seed");
+            seed = '';
+        }
+        console.log(seed);
+        State.active_channel = seed;
+
+        var src = Source.bytes.deterministic(Format.decodeUTF8(seed));
+        channel_id = Format.encodeHex(src(17)); // take 17 uint8s for an ephemeral channel id
+
+        // derive a temporary public keypair for yourself
+        // TODO store a key somewhere so you can have a persistent identity
+        var personal_keys = Crypto.keys.personal();
+
+        // derive group keys from the PRNG
+        var group_keys = Crypto.keys.group.fromSource(src);
+        // add your personal keys to the group keys so you can pass around one set
+        all_keys = Crypto.keys.group.addPersonal(group_keys, personal_keys);
+    };
+
+    configureFromSeed(seed);
 
     var List = {};
     var myID;
@@ -42,7 +58,7 @@ Network.connect = function (seed, cb) {
     };
 
     var onJoin = function (peer) {
-        State.events['net/join'].invoke({
+        State.events.invoke('net/join',{
             id: peer,
         });
 
@@ -58,7 +74,7 @@ Network.connect = function (seed, cb) {
     };
 
     var onLeave = function (peer) {
-        State.events['net/part'].invoke({
+        State.events.invoke('net/part', {
             id: peer,
         });
         delete List[peer];
@@ -70,7 +86,7 @@ Network.connect = function (seed, cb) {
     var onDisconnect = function (reason) {
         // remove everyone from the userlist
         List = {};
-        State.events['net/disconnect'].invoke({
+        State.events.invoke('net/disconnect', {
             reason: reason,
         });
     };
@@ -83,27 +99,40 @@ Network.connect = function (seed, cb) {
         network.on('disconnect', onDisconnect);
     });
 
-    var onOpen = function (chan) {
+
+    var handlers = [];
+    var handle = function (ciphertext, sender) {
+        var msg;
+        try {
+            msg = Crypto.group.decrypt(ciphertext, all_keys);
+        } catch (e) {
+            console.error(e);
+            return;
+        }
+        var parsed = Util.tryParse(msg);
+        if (parsed === null) { return; }
+        handlers.some(function (handler) {
+            return handler(parsed, sender);
+        });
+    };
+
+    var api = {
+        receive: function (handler) {
+            // doesn't seem to work after migrating?
+            handlers.push(handler);
+        },
+        members: function () {
+            return Object.keys(List);
+        },
+    };
+
+    var Transport;
+
+    var onOpen = function (chan, cb) {
         console.log("connected to [%s]", chan.id);
 
         // add one-time handlers
         setup(network);
-
-        var handlers = [];
-        var handle = function (ciphertext, sender) {
-            var msg;
-            try {
-                msg = Crypto.group.decrypt(ciphertext, all_keys);
-            } catch (e) {
-                console.error(e);
-                return;
-            }
-            var parsed = Util.tryParse(msg);
-            if (parsed === null) { return; }
-            handlers.some(function (handler) {
-                return handler(parsed, sender, chan);
-            });
-        };
 
         chan.members.forEach(function (peer) {
             onJoin(peer);
@@ -116,44 +145,46 @@ Network.connect = function (seed, cb) {
 
         myID = chan.myID;
 
-        var migrate = function (seed, cb) {
+        api.send = function (json, cb) {
+            var plaintext = JSON.stringify(json);
+            var ciphertext = Crypto.group.encrypt(plaintext, all_keys);
+
+            chan.bcast(ciphertext)
+            .then(function () {
+                cb();
+            }, function (err) {
+                cb(err);
+            });
+        };
+
+        api.whoami = function () {
+            return chan.myID;
+        };
+
+        api.migrate = function (seed, cb) {
             // Assume that the seed has been set to the hash.
             // this should get called by chat...
             // don't touch the hash from here
 
+            nThen(function () {
+                // disconnect from your current channel
+                chan.leave();
 
-            // TODO disconnect from your current channel
-            // TODO connect to the new channel
-            // TODO call back when connected
+                // set up new keys
+                configureFromSeed(seed);
+
+                // forget all the members of the old channel
+                List = {};
+
+                // connect to the new channel
+                Transport(network, cb);
+            });
 
             cb('NOT_IMPLEMENTED');
         };
 
-        var api = {
-            receive: function (handler) {
-                handlers.push(handler);
-            },
-            send: function (json, cb) {
-                var plaintext = JSON.stringify(json);
-                var ciphertext = Crypto.group.encrypt(plaintext, all_keys);
-
-                chan.bcast(ciphertext)
-                .then(function () {
-                    cb();
-                }, function (err) {
-                    cb(err);
-                });
-            },
-            members: function () {
-                return Object.keys(List);
-            },
-            whoami: function () {
-                return chan.myID;
-            },
-            migrate: migrate,
-        };
-
-        State.events['net/connect'].invoke({
+        // FIXME this shouldn't be here, or should be renamed
+        State.events.invoke('net/connect', {
             channel: chan.id,
         });
 
@@ -162,12 +193,26 @@ Network.connect = function (seed, cb) {
 
     onReconnect = function () {
         network.join(channel_id)
-        .then(onOpen, function (err) {
+        .then(function (chan) {
+            onOpen(chan, function (err) {
+                console.error(err);
+            });
+        }, function (err) {
             if (err) { console.error(err); }
-            State.events['net/reconnect'].invoke({
+            State.events.invoke('net/reconnect', {
                 channel: channel_id
             });
             console.log("reconnected");
+        });
+    };
+
+    Transport = function (network, cb) {
+        //console.log(channel_id);
+        network.join(channel_id)
+        .then(function (chan) {
+            onOpen(chan, cb);
+        }, function (err) {
+            cb(err);
         });
     };
 
@@ -181,13 +226,8 @@ Network.connect = function (seed, cb) {
             w.abort();
             cb(err);
         });
-    }).nThen(function (w) {
-        console.log(channel_id);
-        network.join(channel_id)
-        .then(onOpen, function (err) {
-            w.abort();
-            cb(err);
-        });
+    }).nThen(function () {
+        Transport(network, cb);
     });
 };
 

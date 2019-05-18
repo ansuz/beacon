@@ -5,6 +5,7 @@ var ui = require("../ui");
 var Util = require("../util");
 var Game = require("../game");
 var Storage = require("../storage");
+var Hash = require("../hash");
 
 var data = function (e, k, v) {
     if (!e || typeof(e.getAttribute) !== 'function') { return; }
@@ -26,9 +27,18 @@ var cleanAuthorship = function (main) {
     }, []);
 };
 
-
 module.exports = function (req, res, next) {
     // TODO, if the seed has changed, migrate to the new channel...
+
+    var hash = Hash.get();
+    console.log(hash);
+
+    var seed = Hash.parse(hash || '')[1] || '';
+    if (State.transport && seed !== State.active_channel) {
+        return void State.transport.migrate(seed, function () {
+            console.log("Migrated channel to [%s]", seed);
+        });
+    }
 
     if (State.chat_ready) { return void next(); }
     State.chat_ready = true;
@@ -58,7 +68,7 @@ module.exports = function (req, res, next) {
 
         // a bit hacky, but...
         // let's put notifications here because it's called every time chat changes
-        State.events['tab/notify'].invoke("message");
+        State.events.invoke('tab/notify', "message");
     };
 
     // TODO implement action and meta messages
@@ -80,6 +90,9 @@ module.exports = function (req, res, next) {
     };
 
     var display_nick = function (text, time, author) {
+        if (!(text && time && author)) {
+            return void console.error('invalid display_nick', text, time, author);
+        }
         var msg = ui.message(text, time, author);
         msg.classList.add('action');
 
@@ -109,7 +122,7 @@ module.exports = function (req, res, next) {
 
     var disconnectAlert;
 
-    State
+    State.events
     .on('net/disconnect', function () {
         // only ever show one alert at a time...
         if (disconnectAlert) { disconnectAlert.click(); }
@@ -186,26 +199,33 @@ module.exports = function (req, res, next) {
     };
 
     var setNick = function (val) {
+        if (!val) {
+            console.log(val);
+            return void console.error("no value provided");
+        }
+
         var nick = val.replace(/^\/nick/, '').trim();
         if (!nick) { return; }
+
+        if (!State.commands) {
+            // FIXME
+            console.error("Not ready yet");
+        }
 
         State.commands.nick(nick, function (err) {
             if (err) { return void console.error(err); }
             if (myName() === val) { return; }
+            // FIXME say that your name changed when it changes
             display_nick('You are now known as ' + nick, new Date(), myName());
         });
     };
 
-    State
+    State.events
     .on('name/self', function (result) {
+        console.log(result);
         // you changed your name... let the world know about it
         setNick(result.new);
     })
-    /*
-    .on('name/other', function () {
-        // FIXME why does this work?
-        // mpc/nick
-    })*/
     .on('net/join', function (/* data */) {
         // broadcast your name when someone else connects
         Storage.get('name', function (err, name) {

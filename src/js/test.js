@@ -1,4 +1,4 @@
-var Crypto = require("./crypto");
+var Crypto = require("./lib/crypto");
 //var Format = require("cryptomancy-format");
 //var Source = require("cryptomancy-source");
 var Assert = require("assert");

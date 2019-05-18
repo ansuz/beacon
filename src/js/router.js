@@ -26,51 +26,7 @@ var redirect = function (hash) {
     State.global.history.replaceState({}, State.global.document.title, hash);
 };
 
-var Page = State.Page = {};
-
-// Page events...
-var eventsApi = util.events([
-/*
-    'rpc/message',
-    'rpc/connect',
-    'rpc/disconnect',
-    'rpc/join',
-    'rpc/part',*/
-]);
-
-var events = Page.events = eventsApi.events;
-Page.on = function (k, f) {
-    if (events[k]) {
-        events[k].on(f);
-        return Page;
-    }
-    var handler = events[k] = util.handler();
-    State.global.addEventListener(k, handler.invoke);
-    handler.on(f);
-};
-
-Page.off = function (k, f) {
-    if (!events[k]) { return Page; }
-    events[k].off(f);
-    return Page;
-};
-
-Page.once = function (k, f) {
-    if (events[k]) {
-        events[k].once(f);
-        return Page;
-    }
-    var handler = events[k] = util.handler();
-    State.global.addEventListener(k, handler.invoke);
-    handler.once(f);
-};
-
-Page.clear = function () {
-    Object.keys(Page.events).forEach(function (k) {
-        Page.events[k].clear();
-    });
-    return Page;
-};
+var Page = State.Page = util.events(State.events.list());
 
 var response = function () {
     var res = {
@@ -87,9 +43,11 @@ var response = function () {
         },
         on: function (k, f) {
             Page.on(k, f);
+            return res;
         },
         off: function (k, f) {
             Page.off(k, f);
+            return res;
         },
         redirect: redirect,
         update: function (hash) {
@@ -104,7 +62,7 @@ router.clear = function (req, res, next) {
     res.bar.innerHTML = '';
     res.main.innerHTML = '';
     //notify.set(true);
-    Page.clear();
+    Page.list().forEach(Page.clear);
     next();
 };
 

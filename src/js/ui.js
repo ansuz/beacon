@@ -86,6 +86,9 @@ ui.button = function (text, attr) {
 };
 
 ui.message = function (text, time, author) {
+    if (!(text && time && author)) {
+        return void console.error('invalid message', text, time, author);
+    }
     var nick = author.slice(0, constants.NICK_LENGTH);
 
     return h('div.message', {
@@ -162,8 +165,8 @@ ui.content = function (content) {
 
 var listen = function (cancel, accept) {
     var f;
-    var off = function () { State.Page.off('keypress', f); };
-    State.Page.on('keypress', (f = function (e) {
+    var off = function () { State.Page.off('doc/keypress', f); };
+    State.Page.on('doc/keypress', (f = function (e) {
         switch (e.key) {
             case 'Escape': off(); return cancel();
             case 'Enter': off(); return accept();

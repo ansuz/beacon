@@ -272,7 +272,7 @@ var BYTES = function (env) {
 
                 if (!compareHashes(caller_outcome, outcome)) {
                     console.error("YOU CAUGHT A CHEATER");
-                    return void env.events['mpc/bytes'].invoke({
+                    return void env.events.invoke('mpc/bytes', {
                         error: "CHEATER",
                         initiator: sender,
                         nick: env.nicks[sender] || sender, //initiator,
@@ -280,7 +280,7 @@ var BYTES = function (env) {
                     });
                 }
 
-                env.events['mpc/bytes'].invoke({
+                env.events.invoke('mpc/bytes', {
                     outcome: outcome,
                     initiator: sender,
                     expr: session.expr,
@@ -320,7 +320,7 @@ var BYTES = function (env) {
 
                 var b = mancy.source.bytes.secure()(size);
 
-                env.events['mpc/bytes'].invoke({
+                env.events.invoke('mpc/bytes', {
                     outcome: b,
                     initiator: me,
                     expr: expr,
@@ -433,7 +433,7 @@ var BYTES = function (env) {
             var result = session.outcome;
             clearTimeout(session.timeout);
 
-            env.events['mpc/bytes'].invoke({
+            env.events.invoke('mpc/bytes', {
                 outcome: computeOutcome(session_id),
                 initiator: me,
                 expr: session.expr,
@@ -479,7 +479,7 @@ var MESSAGE = function (env) {
     env.calls.MESSAGE = function (_msg, sender) {
         var msg = Util.clone(_msg);
         history.push(msg);
-        env.events['mpc/message'].invoke({
+        env.events.invoke('mpc/message', {
             raw: msg,
             author: env.nicks[sender] || msg.body.author,
             text: msg.body.text,
@@ -516,7 +516,7 @@ var NICK = function (env) {
         var nick = env.nicks[sender] = msg.body.nick;
         if (prev === nick) { return; }
 
-        State.events['mpc/nick'].invoke({
+        State.events.invoke('mpc/nick', {
             nick: nick,
             author: sender,
             prev: prev,
@@ -526,6 +526,11 @@ var NICK = function (env) {
     return function (nick, cb) {
         // change your nick
         //env.nick = nick;
+
+        var old_name = env.nicks[env.my_id()];
+        if (old_name === nick) {
+            return void cb("E_NO_CHANGE");
+        }
 
         var session_id = mpc.session_id();
         var cmd = command(session_id, 'NICK', {
@@ -541,9 +546,39 @@ var NICK = function (env) {
             }));
         }).nThen(function () {
             env.nicks[api.whoami()] = nick;
+            State.events.invoke('name/self', {
+                old: old_name,
+                new: nick,
+            });
             cb();
         });
     };
+};
+
+var RANDOM_SORT = function (env) {
+    env = env;
+
+    // collect bytes and then do a fisher-yates shuffle
+
+};
+
+/*  TODO fair sorting algorithm for turn orders */
+var SORT = function (env) {
+    // collect a list of unique ids via a commitment scheme
+    // xor them all together
+    // hash(xor_value + own_value)
+    // sort inputs by lowest hash
+
+
+
+    env.calls.SORT = function (/*msg, sender*/) {
+
+    };
+
+    return function (/* cb */) {
+
+    };
+
 };
 
 mpc.prepare = function (api, cb) {
@@ -559,6 +594,7 @@ mpc.prepare = function (api, cb) {
         api: api,
         calls: calls,
         //nick: api.whoami(), // TODO add nick command
+        my_id: api.whoami,
 
         nicks: {},
 
@@ -567,7 +603,7 @@ mpc.prepare = function (api, cb) {
 
     ERROR(env);
 
-    api.receive(function (msg, sender /*, chan */) {
+    api.receive(function (msg, sender) {
         var cmd = msg.command;
 
         if (typeof(calls[cmd]) === 'function') {
@@ -583,9 +619,19 @@ mpc.prepare = function (api, cb) {
         whoami: api.whoami,
         message: MESSAGE(env),
         nick: NICK(env),
+        sort: SORT(env),
+        random_sort: RANDOM_SORT(env),
         name: function () {
             var id = api.whoami();
             return env.nicks[id] || id;
+        },
+        nicks: function () {
+            var names = {};
+            api.members().forEach(function (k, i, members) {
+                console.log(env.nicks, i, members);
+                names[k] = env.nicks[k] || k;
+            });
+            return names;
         },
 
         //nicks: function () { return env.nicks; },

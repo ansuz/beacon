@@ -1,8 +1,7 @@
 var State = require("./state");
 var util = require("./util");
 
-// events
-var netEvents = util.events([
+State.events = util.events([
     'mpc/bytes',
     'mpc/message',
     'mpc/ready',
@@ -20,26 +19,13 @@ var netEvents = util.events([
     //'name/other',
 
     'tab/notify',
+
+    'doc/keypress',
 ]);
 
-State.events = netEvents.events;
-
-State.on = function (k, f) {
-    if (State.events[k]) {
-        State.events[k].on(f);
-        return State;
-    }
-    var handler = State.events[k] = util.handler();
-    State.global.addEventListener(k, handler.invoke);
-    handler.on(f);
-    return State;
-};
-
-State.off = function (k, f) {
-    if (!State.events[k]) { return State; }
-    State.events[k].off(f);
-    return State;
-};
+State.global.document.addEventListener('keypress', function (ev) {
+    State.events.invoke('doc/keypress', ev);
+});
 
 var router = require("./router");
 require("./polyfill");
@@ -66,7 +52,8 @@ var seed = Hash.parse(Hash.get())[1] || '';
 
 Network.connect(seed, function (err, api) {
     if (err) { return void console.error(err); }
-    //State.events['net/connect'].invoke();
+
+    State.transport = api;
 
     Multi.prepare(api, function (err, commands) {
         if (err) {
@@ -74,7 +61,7 @@ Network.connect(seed, function (err, api) {
         }
         State.commands = commands;
         State.messaging.ready = true;
-        State.events['mpc/ready'].invoke();
+        State.events.invoke('mpc/ready');
     });
 });
 
@@ -89,7 +76,7 @@ Network.connect(seed, function (err, api) {
         if (visible) { return void Notify.cancel(); }
     });
 
-    State.events['tab/notify'].on(function (reason) {
+    State.events.on('tab/notify', function (reason) {
         console.log("Notified because: ", reason);
         if (Visible.currently()) { return; }
         Notify.blink();

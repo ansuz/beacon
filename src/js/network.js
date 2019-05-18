@@ -4,7 +4,6 @@ var global = State.global;
 
 var Network = module.exports;
 
-//var mancy = require('cryptomancy');
 var nThen = require("nthen");
 var netflux_websocket = require("netflux-websocket");
 
@@ -50,15 +49,11 @@ Network.connect = function (seed, CB) {
 
     configureFromSeed(seed);
 
-    var List = {};
     var myID;
     var network;
-    var listMembers = function () {
-        console.log('Users: [%s]', Object.keys(List).join(', '));
-    };
 
     var onJoin = function (peer) {
-        State.events.invoke('net/join',{
+        State.events.invoke('chan/join',{
             id: peer,
         });
 
@@ -67,25 +62,18 @@ Network.connect = function (seed, CB) {
         }
 
         if (peer === network.historyKeeper) { return; }
-        if (List[peer]) { return; }
-        List[peer] = true;
         console.log("%s joined the channel", peer);
-        listMembers();
     };
 
     var onLeave = function (peer) {
-        State.events.invoke('net/part', {
+        State.events.invoke('chan/part', {
             id: peer,
         });
-        delete List[peer];
         console.log("%s left the channel", peer);
-        listMembers();
     };
 
     var onReconnect;
     var onDisconnect = function (reason) {
-        // remove everyone from the userlist
-        List = {};
         State.events.invoke('net/disconnect', {
             reason: reason,
         });
@@ -122,7 +110,11 @@ Network.connect = function (seed, CB) {
             handlers.push(handler);
         },
         members: function () {
-            return Object.keys(List);
+            if (!network) { return; }
+            if (!(network.webChannels && network.webChannels.length)) { return; }
+            return network.webChannels[0].members.filter(function (id) {
+                return id.length === 32;
+            });
         },
     };
 
@@ -172,9 +164,6 @@ Network.connect = function (seed, CB) {
 
                 // set up new keys
                 configureFromSeed(seed);
-
-                // forget all the members of the old channel
-                List = {};
 
                 // connect to the new channel
                 Transport(network, cb);

@@ -39,7 +39,7 @@ module.exports.route = function (req, res) {
                 }));
             }).nThen(function (w) {
                 storage.set('name', name, w(function (/* err, v */) {
-                    State.events['name/self'].invoke({
+                    State.events.invoke('name/self', {
                         old: old,
                         new: name,
                     });
@@ -84,7 +84,7 @@ module.exports.route = function (req, res) {
         storage.set('name', name, w(function () {
             // emit a name/self event
             // TODO actually listen for this event...
-            State.events['name/self'].invoke({
+            State.events.invoke('name/self', {
                 old: null,
                 new: name,
             });

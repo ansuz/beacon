@@ -19,8 +19,8 @@ module.exports.route = function (req, res) {
     State.Page
     .on('net/disconnect', render)
     .on('mpc/ready', render)
-    .on('net/join', render)
-    .on('net/part', render)
+    .on('chan/join', render)
+    .on('chan/part', render)
     .on('net/connect', render)
     .on('mpc/nick', render)
     .on('name/self', render);

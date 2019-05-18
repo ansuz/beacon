@@ -2,24 +2,36 @@ var State = require("./state");
 var util = require("./util");
 
 State.events = util.events([
-    'mpc/bytes',
-    'mpc/message',
-    'mpc/ready',
-    'mpc/nick',
-
+    // you successfully connected to the server
     'net/connect',
-    'net/reconnect',
+    // you lost your connection to the server
     'net/disconnect',
-    // TODO differentiate between net and chan
-    'net/join',
-    'net/part',
+    // you reconnected to the server
+    'net/reconnect',
+
+    // somebody else joined a channel
+    'chan/join',
+    // somebody else left a channel
+    'chan/part',
+    // a channel is ready for use
+    'chan/ready',
+
+    // the mpc module is ready for use
+    'mpc/ready',
+    // secure random bytes were generated
+    'mpc/bytes',
+    // somebody else sent a text message
+    'mpc/message',
+    // somebody else changed their nick?
+    'mpc/nick',
 
     // naming things
     'name/self',
     //'name/other',
 
+    // a notification was triggered
     'tab/notify',
-
+    // a key was pressed
     'doc/keypress',
 ]);
 
@@ -43,7 +55,6 @@ doc.onreadystatechange = function () {
 global.onhashchange = function () {
     router.render(loc.hash);
 };
-
 
 (function () {
     var Visible = require("./browser/visible");

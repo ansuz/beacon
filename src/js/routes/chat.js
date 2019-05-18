@@ -6,6 +6,7 @@ var Util = require("../util");
 var Game = require("../game");
 var Storage = require("../storage");
 var Hash = require("../hash");
+var nThen = require("nthen");
 
 var data = function (e, k, v) {
     if (!e || typeof(e.getAttribute) !== 'function') { return; }
@@ -212,33 +213,37 @@ module.exports = function (req, res, next) {
             console.error("Not ready yet");
         }
 
-        State.commands.nick(nick, function (err) {
-            if (err) { return void console.error(err); }
-            if (myName() === val) { return; }
-            // FIXME say that your name changed when it changes
-            display_nick('You are now known as ' + nick, new Date(), myName());
+        nThen(function () {
+            State.commands.nick(nick, function (err) {
+                if (err) { return void console.error(err); }
+                if (myName() === val) { return; }
+                // FIXME say that your name changed when it changes
+                display_nick('You are now known as ' + nick, new Date(), myName());
+            });
         });
+
     };
 
     State.events
     .on('name/self', function (result) {
+        // FIXME this seems to trigger a loop
         console.log(result);
         // you changed your name... let the world know about it
         setNick(result.new);
     })
-    .on('net/join', function (/* data */) {
+    .on('chan/join', function (/* data */) {
         // broadcast your name when someone else connects
         Storage.get('name', function (err, name) {
             setNick(name);
         });
         // TODO also display their name?
     })
-    .on('net/part', function (data) {
+    .on('chan/part', function (data) {
         console.log(data);
         // get their nick and say that they have left
     })
-    .on('net/connect', function (data) {
-        console.log(data);
+    .on('net/connect', function (/* data */) {
+        //console.log(data);
         // broadcast your name when you connect
         Storage.get('name', function (err, name) {
             setNick(name);

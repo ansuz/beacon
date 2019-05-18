@@ -616,11 +616,12 @@ mpc.prepare = function (api, cb) {
 
     var commands = {
         bytes: BYTES(env),
-        whoami: api.whoami,
         message: MESSAGE(env),
-        nick: NICK(env),
         sort: SORT(env),
         random_sort: RANDOM_SORT(env),
+
+        whoami: api.whoami,
+        nick: NICK(env),
         name: function () {
             var id = api.whoami();
             return env.nicks[id] || id;
@@ -633,8 +634,6 @@ mpc.prepare = function (api, cb) {
             });
             return names;
         },
-
-        //nicks: function () { return env.nicks; },
 
         // TODO coin flips (bytes variant)
         // TODO dice rolls (bytes variant)

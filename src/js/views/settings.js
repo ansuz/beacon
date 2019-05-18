@@ -5,6 +5,7 @@ var source = require("cryptomancy-source");
 var format = require("cryptomancy-format");
 var State = require("../state");
 var ui = require("../ui");
+var constants = require("../constants");
 
 module.exports.route = function (req, res) {
     res.setTitle("Whoami");
@@ -34,7 +35,7 @@ module.exports.route = function (req, res) {
                         return void ui.alert("That name is not valid");
                     }
 
-                    name = val.slice(0, 20);
+                    name = val.slice(0, constants.NICK_LENGTH);
                 }));
             }).nThen(function (w) {
                 storage.set('name', name, w(function (/* err, v */) {

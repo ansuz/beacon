@@ -3,6 +3,7 @@ var marked = require("marked");
 var ui = module.exports;
 var Util = require("./util");
 var ansuz = require("ansuz");
+var constants = require("./constants");
 
 var State = require("./state");
 var body = State.global.document.body;
@@ -85,7 +86,7 @@ ui.button = function (text, attr) {
 };
 
 ui.message = function (text, time, author) {
-    var nick = author.slice(0, 9);
+    var nick = author.slice(0, constants.NICK_LENGTH);
 
     return h('div.message', {
         title: new Date(time).toUTCString(),

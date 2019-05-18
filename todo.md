@@ -3,6 +3,9 @@
 ## Infra
 
 * make one-time build commands so you don't need to watch
+* fix demo TLS settings
+  * https://www.ssllabs.com/ssltest/analyze.html?d=cryptography.dog
+  * [CAA](https://support.dnsimple.com/articles/caa-record/)
 
 ## Code
 
@@ -17,7 +20,12 @@
 ## Design
 
 * make it prettier
+* display a userlist somehow
+  * userlist is wrong on first page load for some reason
+
 
 ## Docs
 
 * keep going on the wiki
+* go over 'production' setup
+

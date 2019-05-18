@@ -4,8 +4,6 @@ var unmon = require("unmon-router");
 var ui = require("./ui");
 var util = require("./util");
 var nav = require("./nav");
-//var notify = require("./notify");
-//var visible = require("./visible");
 
 var routes = router.routes = require("./views/index");
 var State = require("./state");
@@ -61,7 +59,6 @@ router.clear = function (req, res, next) {
     // start fresh
     res.bar.innerHTML = '';
     res.main.innerHTML = '';
-    //notify.set(true);
     Page.list().forEach(Page.clear);
     next();
 };
